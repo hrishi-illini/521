@@ -1,0 +1,67 @@
+; The printed output for this example should be equivalent to:
+; (
+;   (define-fun max ((x Int) (y Int)) Int (ite (<= x y) y x))
+;   (define-fun min ((x Int) (y Int)) Int (ite (<= x y) x y))
+; )
+
+
+(set-logic LRA)
+(synth-fun Fl ((a Real) (b Real)) Real
+
+  ((Start Real) (IntCompare Bool) (IntBasics Real))
+  ((Start Real (IntBasics
+               (ite IntCompare Start Start)
+              ))
+
+    (IntCompare Bool ( (>= IntBasics IntBasics)
+                      (> IntBasics IntBasics)
+                      (= IntBasics IntBasics)
+                    ))
+    (IntBasics Real (0 1 a b (- a) (- b)
+                    ))
+  )
+)
+
+(synth-fun Fu ((a Real) (b Real)) Real
+
+  ((Start Real) (IntCompare Bool) (IntBasics Real))
+  ((Start Real (IntBasics
+               (ite IntCompare Start Start)
+              ))
+
+    (IntCompare Bool ( (>= IntBasics IntBasics)
+                      (> IntBasics IntBasics)
+                      (= IntBasics IntBasics)
+                    ))
+    (IntBasics Real (0 1 a b (- a) (- b)
+                    ))
+  )
+)
+
+(declare-var a Real)
+(declare-var b Real)
+(declare-var x Real)
+
+
+(define-fun f ((x Real)) Real
+(ite (>= x 0) x (- x))       ; absolute value function
+)
+
+
+(constraint 
+
+(=> 
+   (and (<= a x) (<= x b))
+    (and (<= (Fl a b) (f x)) (>= (Fu a b) (f x)) 
+         (<= (Fl a b) (f x)) (>= (Fu a b) (f x))
+    )
+
+)
+)
+; not tight
+
+(constraint (and (>= (Fl a b) 0) (>= (Fu a b) 0)))
+(constraint (=> (> a 0) (> (Fl a b) 0)))
+(constraint (=> (< b 0) (> (Fl a b) 0)))
+
+(check-synth)

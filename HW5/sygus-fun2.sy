@@ -1,0 +1,58 @@
+; The printed output for this example should be equivalent to:
+; (
+;   (define-fun max ((x Int) (y Int)) Int (ite (<= x y) y x))
+;   (define-fun min ((x Int) (y Int)) Int (ite (<= x y) x y))
+; )
+
+
+(set-logic NRA)
+(synth-fun Fl ((a Real) (b Real)) Real
+
+  ((Start Real) (IntBasics Real))
+  ((Start Real (IntBasics
+              ))
+    (IntBasics Real (a b (* IntBasics IntBasics)    ; added multiplication
+                    ))
+  )
+)
+
+(synth-fun Fu ((a Real) (b Real)) Real
+
+  ((Start Real) (IntBasics Real))
+  ((Start Real (IntBasics
+              ))
+
+    (IntBasics Real (a b (* IntBasics IntBasics)
+                    ))
+  )
+)
+
+
+; simplfied grammar for faster sygus
+(declare-var a Real)
+(declare-var b Real)
+(declare-var x Real)
+
+
+(define-fun f ((x Real)) Real
+(^ x 3)      ; x^3
+)
+
+
+(constraint 
+
+(=> 
+   (and (<= a x) (<= x b))
+    (and (<= (Fl a b) (f x)) (>= (Fu a b) (f x)) 
+         (<= (Fl a b) (f x)) (>= (Fu a b) (f x))
+    )
+
+)
+)
+
+(check-synth)
+
+
+; returned
+;(define-fun Fl ((a Real) (b Real)) Real (* (* a a) a))
+(;define-fun Fu ((a Real) (b Real)) Real (* (* b b) b))

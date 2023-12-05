@@ -1,0 +1,75 @@
+; The printed output for this example should be equivalent to:
+; (
+;   (define-fun max ((x Int) (y Int)) Int (ite (<= x y) y x))
+;   (define-fun min ((x Int) (y Int)) Int (ite (<= x y) x y))
+; )
+
+
+
+
+
+
+(set-logic LRA)
+
+
+(define-fun f1 ((x Real)) Real
+(ite (>= x 0) x (- x))     
+)
+
+(define-fun f ((x Real)) Real
+(- x (f1 x))
+)
+
+(synth-fun Fl ((a Real) (b Real)) Real
+
+  ((Start Real) (IntCompare Bool) (IntBasics Real))
+  ((Start Real (IntBasics
+               (ite IntCompare Start Start)
+              ))
+
+    (IntCompare Bool ( (>= IntBasics IntBasics)
+                      (> IntBasics IntBasics)
+                      (= IntBasics IntBasics)
+                    ))
+    (IntBasics Real (  (f a) (f b)  1 0 a b
+                    ))
+  )
+)
+
+(synth-fun Fu ((a Real) (b Real)) Real
+
+  ((Start Real) (IntCompare Bool) (IntBasics Real))
+  ((Start Real (IntBasics
+               (ite IntCompare Start Start)
+              ))
+
+    (IntCompare Bool ( (>= IntBasics IntBasics)
+                      (> IntBasics IntBasics)
+                      (= IntBasics IntBasics)
+                    ))
+    (IntBasics Real ( (f a) (f b) 1 0  a b ))
+  )
+)
+
+(declare-var a Real)
+(declare-var b Real)
+(declare-var x Real)
+
+
+
+
+
+(constraint 
+
+(=> 
+   (and (<= a x) (<= x b))
+    (and (<= (Fl a b) (f x)) (>= (Fu a b) (f x)) 
+         (<= (Fl a b) (f x)) (>= (Fu a b) (f x))
+    )
+
+)
+)
+
+
+
+(check-synth)

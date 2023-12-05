@@ -1,0 +1,82 @@
+; The printed output for this example should be equivalent to:
+; (
+;   (define-fun max ((x Int) (y Int)) Int (ite (<= x y) y x))
+;   (define-fun min ((x Int) (y Int)) Int (ite (<= x y) x y))
+; )
+
+
+
+
+
+
+(set-logic NRA)
+
+
+(define-fun f1 ((x Real)) Real
+(ite (>= x 0) x (- x))     
+)
+
+(define-fun fsq ((x Real)) Real
+(^ x 2)
+)
+
+(define-fun fcube ((x Real)) Real
+(^ x 3)
+)
+
+(define-fun f ((x Real)) Real
+(ite (>= (fcube x) (fsq x)) (fcube x) (fsq x))
+)
+
+(synth-fun Fl ((a Real) (b Real)) Real
+
+  ((Start Real) (IntCompare Bool) (IntBasics Real))
+  ((Start Real (IntBasics
+               (ite IntCompare Start Start)
+              ))
+
+    (IntCompare Bool ( (>= IntBasics IntBasics)
+                      (> IntBasics IntBasics)
+                      (= IntBasics IntBasics)
+                    ))
+    (IntBasics Real ( (f a) (f b) a b 1 0 ))
+  )
+)
+
+(synth-fun Fu ((a Real) (b Real)) Real
+
+  ((Start Real) (IntCompare Bool) (IntBasics Real))
+  ((Start Real (IntBasics
+               (ite IntCompare Start Start)
+              ))
+
+    (IntCompare Bool ( (>= IntBasics IntBasics)
+                      (> IntBasics IntBasics)
+                      (= IntBasics IntBasics)
+                    ))
+    (IntBasics Real ( (f a) (f b) a b 1 0 ))
+  )
+)
+
+(declare-var a Real)
+(declare-var b Real)
+(declare-var x Real)
+
+
+
+
+
+(constraint 
+
+(=> 
+   (and (<= a x) (<= x b))
+    (and (<= (Fl a b) (f x)) (>= (Fu a b) (f x)) 
+         (<= (Fl a b) (f x)) (>= (Fu a b) (f x))
+    )
+
+)
+)
+
+
+
+(check-synth)
